@@ -60,7 +60,7 @@ def get_useful_recipe(recursion=5):
 	return get_useful_recipe(recursion - 1)
 
 def get_recipe_text(soup):
-	title = soup.find("title").text.strip()
+	title = soup.find("meta", property="og:title")["content"].strip()
 	rating = soup.find("div", id="mntl-recipe-review-bar__rating_1-0").text.strip()
 
 	return (title, rating)
