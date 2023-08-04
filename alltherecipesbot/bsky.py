@@ -42,5 +42,11 @@ def post_to_bsky(text, link, images):
 			)
 		)
 
+	return
 
-	return None
+def frow_up():
+	bsky = Client()
+	bsky.login(os.environ['BSKY_HANDLE'], os.environ['BSKY_PASSWORD'])
+	bsky.send_post(text="i frew up 🤮")	
+	
+	return
