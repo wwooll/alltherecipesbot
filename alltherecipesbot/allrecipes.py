@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 
 ALLRECIPES_ALL_URL="https://www.allrecipes.com/recipes-a-z-6735880"
 recipe_link_re = re.compile('com\/recipe\/')
+number_photos_re = re.compile('(\d+) Photos')
 
 def has_enough_ratings(soup):
 	rating_count = soup.find("div", class_="recipe-card-meta__rating-count-number")
@@ -36,7 +37,7 @@ def get_random_recipe():
 
 def number_of_photos(soup):
 	photos_string = soup.find(id="recipe-review-bar__photo-count_1-0").text
-	match = re.search(r'(\d+) Photos', photos_string)
+	match = number_photos_re.search(photos_string)
 	return int(match.group(1))
 
 def get_useful_recipe(recursion=5):
