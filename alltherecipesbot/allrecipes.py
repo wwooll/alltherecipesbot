@@ -1,8 +1,7 @@
 import httpx
 import random
 import re
-import json
-from bs4 import BeautifulSoup, SoupStrainer
+from bs4 import BeautifulSoup
 
 ALLRECIPES_ALL_URL="https://www.allrecipes.com/recipes-a-z-6735880"
 
@@ -68,7 +67,7 @@ def get_photos(recipe, soup, photo_count):
 	photo_imgs = []
 	for img in img_tags:
 		photo_imgs.append((img['data-src'], img['alt']))
-
+		
 	selected_imgs = random.sample(photo_imgs, 4)
 
 	return selected_imgs
