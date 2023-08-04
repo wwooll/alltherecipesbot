@@ -4,6 +4,20 @@ import re
 from bs4 import BeautifulSoup
 
 ALLRECIPES_ALL_URL="https://www.allrecipes.com/recipes-a-z-6735880"
+recipe_link_re = re.compile('com\/recipe\/')
+
+def has_enough_ratings(soup):
+	rating_count = soup.find("div", class_="recipe-card-meta__rating-count-number")
+	if rating_count:
+		rating_count = rating_count.text.strip()
+		rating_count = rating_count.split("\n\n")[0]
+		rating_count = rating_count.replace(",", "")
+
+		rating_count = int(rating_count)
+		if rating_count > 20:
+			return True
+
+	return False
 
 def get_random_recipe():
 	r = httpx.get(ALLRECIPES_ALL_URL)
@@ -14,8 +28,9 @@ def get_random_recipe():
 	r = httpx.get(random.choice(categories)["href"])
 	soup = BeautifulSoup(r.text, "lxml")
 
-	recipes = soup.find("div", class_="loc fixedContent").find_all("a")
-	recipe = random.choice(recipes)["href"]
+	recipes = soup.find("div", class_="loc fixedContent").find_all("a", class_="mntl-card-list-items")
+	recipes = [a['href'] for a in recipes if (recipe_link_re.search(a['href']) and has_enough_ratings(a))]
+	recipe = random.choice(recipes)
 
 	return recipe
 
