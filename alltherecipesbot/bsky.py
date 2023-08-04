@@ -4,7 +4,7 @@ import httpx
 from datetime import datetime
 
 def get_image_data(url):
-	r = httpx.get(url)
+	r = httpx.get(url, timeout=12.0)
 	return r.content
 
 def upload_image_get_model(client, url, alt):
