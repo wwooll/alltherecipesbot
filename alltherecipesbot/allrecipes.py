@@ -65,7 +65,16 @@ def get_recipe_text(soup):
 
 	return (title, rating)
 
-def get_photos(recipe, soup, photo_count):
+def random_alt_tag():
+	return random.choice([
+			"An enticing photograph of {0}",
+			"A delectable photo of {0}",
+			"A photo of {0}",
+			"A well-lit photo of {0}",
+			"A photo of {0}, probably perfectly framed and looking great"
+		])
+
+def get_photos(recipe, soup, photo_count, title):
 	raw_photo_htmls = ""
 
 	if photo_count > 40:
@@ -82,7 +91,12 @@ def get_photos(recipe, soup, photo_count):
 	img_tags = soup.find_all("img")
 	photo_imgs = []
 	for img in img_tags:
-		photo_imgs.append((img['data-src'], img['alt']))
+		backup_alt = random_alt_tag().format(title)
+		alt = img.get("alt", False)
+		if not alt:
+			alt = backup_alt
+
+		photo_imgs.append((img['data-src'], alt))
 		
 	selected_imgs = random.sample(photo_imgs, 4)
 
@@ -90,8 +104,7 @@ def get_photos(recipe, soup, photo_count):
 
 def get_random_recipe_and_photos():
 	(recipe, soup, photo_count) = get_useful_recipe()
-	photos = get_photos(recipe, soup, photo_count)
-
 	(title, rating) = get_recipe_text(soup)
+	photos = get_photos(recipe, soup, photo_count, title)
 
 	return (title, rating, recipe, photos)
