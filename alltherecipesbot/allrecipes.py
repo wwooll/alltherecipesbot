@@ -20,13 +20,13 @@ def has_enough_ratings(soup):
 
 	return False
 
-def get_random_recipe():
-	r = httpx.get(ALLRECIPES_ALL_URL)
+def get_random_recipe(http_client):
+	r = http_client.get(ALLRECIPES_ALL_URL)
 	soup = BeautifulSoup(r.text, "lxml")
 
 	categories = soup.find(id="alphabetical-list_1-0").find_all("a")
 
-	r = httpx.get(random.choice(categories)["href"])
+	r = http_client.get(random.choice(categories)["href"])
 	soup = BeautifulSoup(r.text, "lxml")
 
 	recipes = soup.find("div", class_="loc fixedContent").find_all("a", class_="mntl-card-list-items")
@@ -40,13 +40,13 @@ def number_of_photos(soup):
 	match = number_photos_re.search(photos_string)
 	return int(match.group(1))
 
-def get_useful_recipe(recursion=5):
+def get_useful_recipe(http_client, recursion=5):
 	if recursion==0:
 		raise RuntimeError("Couldn't find a good recipe")
 
-	recipe = get_random_recipe()
+	recipe = get_random_recipe(http_client)
 
-	r = httpx.get(recipe)
+	r = http_client.get(recipe)
 	soup = BeautifulSoup(r.text, "lxml")
 
 	try:
@@ -59,7 +59,7 @@ def get_useful_recipe(recursion=5):
 	#Fallback recurse
 	return get_useful_recipe(recursion - 1)
 
-def get_recipe_text(soup):
+def get_recipe_text(soup, http_client):
 	title = soup.find("meta", property="og:title")["content"].strip()
 	rating = soup.find("div", id="mntl-recipe-review-bar__rating_1-0").text.strip()
 
@@ -74,7 +74,7 @@ def random_alt_tag():
 			"A photo of {0}, probably perfectly framed and looking great"
 		])
 
-def get_photos(recipe, soup, photo_count, title):
+def get_photos(recipe, soup, photo_count, title, http_client):
 	raw_photo_htmls = ""
 
 	if photo_count > 40:
@@ -84,7 +84,7 @@ def get_photos(recipe, soup, photo_count, title):
 		param = ""
 		if x>0:
 			param = "?offset=" + str(x * 10)
-		r = httpx.post(recipe + param, data={"cr": "photo-dialog__page_1"})
+		r = http_client.post(recipe + param, data={"cr": "photo-dialog__page_1"})
 		raw_photo_htmls = raw_photo_htmls + r.json()["photo-dialog__page_1"]['html']
 
 	soup = BeautifulSoup(raw_photo_htmls, "lxml")
@@ -103,8 +103,9 @@ def get_photos(recipe, soup, photo_count, title):
 	return selected_imgs
 
 def get_random_recipe_and_photos():
-	(recipe, soup, photo_count) = get_useful_recipe()
-	(title, rating) = get_recipe_text(soup)
-	photos = get_photos(recipe, soup, photo_count, title)
+	http_client = httpx.Client()
+	(recipe, soup, photo_count) = get_useful_recipe(http_client)
+	(title, rating) = get_recipe_text(soup, http_client)
+	photos = get_photos(recipe, soup, photo_count, title, http_client)
 
 	return (title, rating, recipe, photos)
