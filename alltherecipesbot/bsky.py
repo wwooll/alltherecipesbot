@@ -34,6 +34,7 @@ def post_to_bsky(text, link, images):
 			repo=bsky.me.did,
 			collection=models.ids.AppBskyFeedPost,
 			record=models.AppBskyFeedPost.Main(
+				langs=["English"],
 				createdAt=datetime.now().isoformat(),
 				text=combined_text,
 				facets=facets,
