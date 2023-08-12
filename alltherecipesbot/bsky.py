@@ -1,21 +1,22 @@
-from atproto import Client, models
+from atproto import Client, models, xrpc_client
 import os
 import httpx
 from datetime import datetime
 
-def get_image_data(url):
-	r = httpx.get(url, timeout=12.0)
+def get_image_data(url, http_client):
+	r = http_client.get(url, timeout=12.0)
 	return r.content
 
-def upload_image_get_model(client, url, alt):
-	upload = client.com.atproto.repo.upload_blob(get_image_data(url))
+def upload_image_get_model(client, url, alt, http_client):
+	upload = client.com.atproto.repo.upload_blob(get_image_data(url, http_client))
 	return models.AppBskyEmbedImages.Image(alt=alt, image=upload.blob)
 
 def post_to_bsky(text, link, images):
 	bsky = Client()
 	bsky.login(os.environ['BSKY_HANDLE'], os.environ['BSKY_PASSWORD'])
 
-	image_models = [upload_image_get_model(bsky, x[0], x[1]) for x in images]
+	with httpx.Client() as http_client:
+		image_models = [upload_image_get_model(bsky, x[0], x[1], http_client) for x in images]
 
 	text = text + '\n'
 	combined_text = text + link
