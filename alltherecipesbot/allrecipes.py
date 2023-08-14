@@ -57,7 +57,7 @@ def get_useful_recipe(http_client, recursion=5):
 		pass
 
 	#Fallback recurse
-	return get_useful_recipe(recursion - 1)
+	return get_useful_recipe(http_client, recursion - 1)
 
 def get_recipe_text(soup, http_client):
 	title = soup.find("meta", property="og:title")["content"].strip()
