@@ -36,7 +36,7 @@ def post_to_bsky(text, link, images):
 			collection=models.ids.AppBskyFeedPost,
 			record=models.AppBskyFeedPost.Main(
 				langs=["English"],
-				createdAt=datetime.now().isoformat(),
+				createdAt=bsky.get_current_time_iso(),
 				text=combined_text,
 				facets=facets,
 				embed=models.AppBskyEmbedImages.Main(images=image_models)
