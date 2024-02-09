@@ -1,6 +1,10 @@
 import allrecipes
 import bsky
 import os
+import logging
+
+if os.getenv("PY_ENV", "prod") == "dev":
+	logging.basicConfig(level=logging.INFO)
 
 def main():
 	try:
