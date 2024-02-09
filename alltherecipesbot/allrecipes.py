@@ -1,14 +1,16 @@
+from atproto.xrpc_client.models.app.bsky.embed import images
 import httpx
 import random
 import re
 from bs4 import BeautifulSoup
+import logging
 
 ALLRECIPES_ALL_URL="https://www.allrecipes.com/recipes-a-z-6735880"
-recipe_link_re = re.compile('com\/recipe\/')
 number_photos_re = re.compile('(\d+) Photos')
 
 def has_enough_ratings(soup):
-	rating_count = soup.find("div", class_="recipe-card-meta__rating-count-number")
+	rating_count = soup.find("div", class_="mntl-recipe-card-meta__rating-count-number")
+	logging.debug(f"Rating count found? {rating_count}")
 	if rating_count:
 		rating_count = rating_count.text.strip()
 		rating_count = rating_count.split("\n\n")[0]
@@ -24,13 +26,16 @@ def get_random_recipe(http_client):
 	r = http_client.get(ALLRECIPES_ALL_URL)
 	soup = BeautifulSoup(r.text, "lxml")
 
-	categories = soup.find(id="alphabetical-list_1-0").find_all("a")
+	categories = soup.find(id="mntl-alphabetical-list_1-0").find_all("a")
+	logging.debug("Categories:\n" + str(categories))
 
 	r = http_client.get(random.choice(categories)["href"])
 	soup = BeautifulSoup(r.text, "lxml")
 
-	recipes = soup.find("div", class_="loc fixedContent").find_all("a", class_="mntl-card-list-items")
-	recipes = [a['href'] for a in recipes if (recipe_link_re.search(a['href']) and has_enough_ratings(a))]
+	recipes = soup.find("div", id="mntl-taxonomysc-article-list-group_1-0").find_all("a", class_="mntl-card-list-items")
+	logging.info(f"{len(recipes)} Recipes")
+	recipes = [a['href'] for a in recipes if (has_enough_ratings(a))]
+	logging.info(f"Reduced to {len(recipes)} Recipes")
 	recipe = random.choice(recipes)
 
 	return recipe
@@ -91,12 +96,16 @@ def get_photos(recipe, soup, photo_count, title, http_client):
 	img_tags = soup.find_all("img")
 	photo_imgs = []
 	for img in img_tags:
+		logging.debug(img)
 		backup_alt = random_alt_tag().format(title)
 		alt = img.get("alt", False)
 		if not alt:
 			alt = backup_alt
 
-		photo_imgs.append((img['data-src'], alt))
+		img_src = img.get("data-src", False)
+		if not img_src:
+			img_src = img["src"]
+		photo_imgs.append((img_src, alt))
 		
 	selected_imgs = random.sample(photo_imgs, 4)
 
