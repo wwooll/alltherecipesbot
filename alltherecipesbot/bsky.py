@@ -1,4 +1,4 @@
-from atproto import Client, models, xrpc_client
+from atproto import Client, models
 import os
 import httpx
 from datetime import datetime
@@ -26,23 +26,17 @@ def post_to_bsky(text, link, images):
 	facets = [
 		models.AppBskyRichtextFacet.Main(
 			features = [models.AppBskyRichtextFacet.Link(uri=link)],
-			index=models.AppBskyRichtextFacet.ByteSlice(byteStart=link_idx_start, byteEnd=link_idx_end)
+			index=models.AppBskyRichtextFacet.ByteSlice(byte_start=link_idx_start, byte_end=link_idx_end)
 			)
 	]
 
-	bsky.com.atproto.repo.create_record(
-		models.ComAtprotoRepoCreateRecord.Data(
-			repo=bsky.me.did,
-			collection=models.ids.AppBskyFeedPost,
-			record=models.AppBskyFeedPost.Main(
-				langs=["English"],
-				createdAt=bsky.get_current_time_iso(),
-				text=combined_text,
-				facets=facets,
-				embed=models.AppBskyEmbedImages.Main(images=image_models)
-				)
-			)
+	bsky.post(
+		langs=["English"],
+		text=combined_text,
+		facets=facets,
+		embed=models.AppBskyEmbedImages.Main(images=image_models)
 		)
+
 
 	return
 
